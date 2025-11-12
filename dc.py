@@ -192,7 +192,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-
+    schedule_shutdown()
 # --- Win32 mouse input setup ---
 PUL = ctypes.POINTER(ctypes.c_ulong)
 
@@ -310,7 +310,5 @@ finally:
         key_listener.stop()
     except:
         pass
-
-schedule_shutdown()
 
 input("\nPress Enter to Exit")
