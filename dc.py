@@ -189,10 +189,9 @@ def main():
                 print(f"ERROR: {e}")
                 continue
 
-schedule_shutdown()
-
 if __name__ == "__main__":
     main()
+    schedule_shutdown()
 
 import ctypes
 import time
