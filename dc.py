@@ -180,9 +180,25 @@ def main():
 if __name__ == "__main__":
     main()
 
+import ctypes
+import time
+from pynput import mouse, keyboard
+from pynput.keyboard import Listener as KeyboardListener
+from pynput.mouse import Listener as MouseListener
+
 PUL = ctypes.POINTER(ctypes.c_ulong)
 
-print("[*] Ryzen's AP macro\n")
+print(r"""
+██████╗ ██╗   ██╗████████╗██╗  ██╗ ██████╗ ███╗   ██╗    ███╗   ███╗ █████╗  ██████╗██████╗  ██████╗ 
+██╔══██╗╚██╗ ██╔╝╚══██╔══╝██║  ██║██╔═══██╗████╗  ██║    ████╗ ████║██╔══██╗██╔════╝██╔══██╗██╔═══██╗
+██████╔╝ ╚████╔╝    ██║   ███████║██║   ██║██╔██╗ ██║    ██╔████╔██║███████║██║     ██████╔╝██║   ██║
+██╔═══╝   ╚██╔╝     ██║   ██╔══██║██║   ██║██║╚██╗██║    ██║╚██╔╝██║██╔══██║██║     ██╔══██╗██║   ██║
+██║        ██║      ██║   ██║  ██║╚██████╔╝██║ ╚████║    ██║ ╚═╝ ██║██║  ██║╚██████╗██║  ██║╚██████╔╝
+╚═╝        ╚═╝      ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝    ╚═╝     ╚═╝╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝ 
+                                                                                                                               
+""")
+
+
 time.sleep(2)
 print("[*] Made by Ryzen\n")
 
@@ -245,10 +261,16 @@ def detect_trigger():
             time.sleep(0.05)
 
     time.sleep(0.3)
+
+    if trigger_type == "mouse":
+        print(f"Selected mouse button: {trigger_key}")
+    else:
+        print(f"Selected key: {trigger_key}")
+
     return trigger_key, trigger_type
 
 trigger_key, trigger_type = detect_trigger()
-cps = float(input("Clicks per second: "))
+cps = float(input("\nClicks per second: "))
 interval = 1 / cps
 active_button = mouse.Button.left
 
@@ -293,5 +315,3 @@ finally:
         key_listener.stop()
     except:
         pass
-
-input("\nPress Enter to Exit")
