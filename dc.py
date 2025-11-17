@@ -446,7 +446,7 @@ print(r"""
 
 
 time.sleep(2)
-print("[*] Made by Ryzen\n")
+print("[*] Made by Lemino\n")
 
 class MouseInput(ctypes.Structure):
     _fields_ = [("dx", ctypes.c_long),
